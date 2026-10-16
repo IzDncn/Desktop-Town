@@ -1,0 +1,27 @@
+{
+  "name": "Pip der Barde",
+  "seat": 1,
+  "outfit": "default",
+
+  "frameWidth": 16,
+  "frameHeight": 24,
+  "idleFrameMs": 450,
+  "reactFrameMs": 140,
+
+  "outfits": {
+    "default": { "idle": "outfits/default/idle.png", "react": "outfits/default/react.png" }
+  },
+
+  "lines": {
+    "click": [
+      "Soll ich was spielen?",
+      "Psst, du hast Funken im Haar!",
+      "Ich nenne dieses Lied: 'Der Wanderer schnarcht'."
+    ],
+    "idle": [
+      "Mir fällt gleich ein Lied ein...",
+      "Hat jemand meine Laute gesehen?",
+      "Ein Reim auf 'Feuer'... Scheuer? Ungeheuer!"
+    ]
+  }
+}

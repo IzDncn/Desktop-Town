@@ -1,0 +1,30 @@
+<Window x:Class="DesktopAdventures.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Desktop Adventures"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Topmost="True"
+        WindowStartupLocation="Manual"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        Loaded="Window_Loaded">
+
+    <!-- Rechtsklick irgendwo auf Feuer/Figur: Beenden -->
+    <Window.ContextMenu>
+        <ContextMenu>
+            <MenuItem Header="Beenden" Click="Exit_Click" />
+        </ContextMenu>
+    </Window.ContextMenu>
+
+    <!-- Zwei Ebenen: SceneLayer = Kulisse + Feuer + Figuren, OverlayLayer = Sprechblasen (obenauf).
+         Nur die gezeichneten Pixel sind klickbar; die abgerundeten Rahmenecken sind durchsichtig.
+         Die Groesse kommt aus SceneLayout und wird in MainWindow.xaml.cs gesetzt. -->
+    <Grid>
+        <Canvas x:Name="SceneLayer" />
+        <Canvas x:Name="OverlayLayer" />
+    </Grid>
+</Window>

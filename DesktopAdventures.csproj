@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>DesktopAdventures</RootNamespace>
+    <AssemblyName>DesktopAdventures</AssemblyName>
+    <Product>Desktop Adventures</Product>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Sprites neben die .exe kopieren -->
+    <None Update="Assets\**\*.png" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Charaktere (JSON + Sprites) ebenfalls kopieren, damit man sie ohne Code-Aenderung anpassen kann -->
+    <None Update="Characters\**\*.*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
