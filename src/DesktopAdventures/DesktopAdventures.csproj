@@ -9,13 +9,9 @@
     <RootNamespace>DesktopAdventures</RootNamespace>
     <AssemblyName>DesktopAdventures</AssemblyName>
     <Product>Desktop Adventures</Product>
+    <Version>0.1.0</Version>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
-
-  <ItemGroup>
-    <!-- Sprites neben die .exe kopieren -->
-    <None Update="Assets\**\*.png" CopyToOutputDirectory="PreserveNewest" />
-    <!-- Charaktere (JSON + Sprites) ebenfalls kopieren, damit man sie ohne Code-Aenderung anpassen kann -->
-    <None Update="Characters\**\*.*" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
 
 </Project>
