@@ -24,7 +24,8 @@ public sealed class ScreenDock
     private bool _autohide;
     private long _autohideCheckedAt = long.MinValue;
 
-    public DockArea Query()
+    /// <param name="dpiScale">DPI-Faktor des Hauptbildschirms (für den Autohide-Abstand).</param>
+    public DockArea Query(double dpiScale)
     {
         var monitor = MonitorFromPoint(default, MONITOR_DEFAULTTOPRIMARY);
         var info = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
@@ -37,7 +38,8 @@ public sealed class ScreenDock
         {
             // Arbeitsbereich ignoriert die ausgeblendete Taskleiste -> ihr aktuelles Rechteck auswerten.
             int visible = VisibleTrayHeight(info.rcMonitor);
-            bottom = info.rcMonitor.Bottom - (visible > HotEdgePx ? visible : GameConfig.AutohideGapPx);
+            int gap = (int)Math.Ceiling(GameConfig.AutohideGapDips * dpiScale);
+            bottom = info.rcMonitor.Bottom - (visible > HotEdgePx ? visible : gap);
         }
 
         return new DockArea(info.rcWork.Left, info.rcWork.Right, bottom);

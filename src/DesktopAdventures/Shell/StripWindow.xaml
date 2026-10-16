@@ -23,6 +23,7 @@
     </Window.ContextMenu>
 
     <Image x:Name="View"
+           MouseLeftButtonDown="View_MouseLeftButtonDown"
            Stretch="Fill"
            HorizontalAlignment="Left"
            VerticalAlignment="Bottom"

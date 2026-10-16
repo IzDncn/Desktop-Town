@@ -17,9 +17,13 @@ oder `DesktopAdventures.sln` in Rider / Visual Studio öffnen. Beenden: Rechtskl
 ## Etappen
 
 - [x] 1. Fundament: Streifen auf der Taskleiste, Pixel-Engine, prozedurale Landschaft
-- [ ] 2. Welt: Sprite-System, erste Figur läuft durch die Landschaft, Tageszeit
+- [x] 2. Welt & Charaktere: Sprite-System, datengetriebene Charaktere, Figuren laufen durch die Landschaft
 - [ ] 3. Buch-Popup: Pixel-UI im Stil des Referenzbilds, Tabs
 - [ ] 4. Spielzustand: Speichern, Ressourcen, Challenges, Freischaltungen
-- [ ] 5. Bauen & Inhalte: Häuser, weitere Charaktere, Tray-Icon, Release-Workflow
+- [ ] 5. Bauen & Inhalte: Häuser, weitere Charaktere, Tageszeit, Tray-Icon, Release-Workflow
+
+## Charaktere
+Eigene Charaktere entstehen per JSON (Farben, Hüte, Specials), ohne Code: `docs/CHARAKTERE.md`.
+Alle Charaktere ansehen: `dotnet run --project src/DesktopAdventures -- --all-characters`.
 
 Details: `CHANGELOG.md`, Technik: `docs/ARCHITEKTUR.md`.

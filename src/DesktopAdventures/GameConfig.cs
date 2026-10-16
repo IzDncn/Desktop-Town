@@ -15,7 +15,7 @@ public static class GameConfig
     /// <summary>Seed der Landschaft (später pro Speicherstand).</summary>
     public const int WorldSeed = 20261016;
 
-    /// <summary>Abstand zum Bildschirmrand, wenn die Taskleiste automatisch ausgeblendet wird.
-    /// Muss > 0 sein, sonst verdeckt das Fenster die Kante, an der sie wieder einfährt.</summary>
-    public const int AutohideGapPx = 6;
+    /// <summary>Abstand (DIPs) zum unteren Bildschirmrand, solange die Taskleiste automatisch ausgeblendet ist.
+    /// Ohne diesen Spielraum kann sie nicht mehr einfahren. Bei Problemen größer wählen.</summary>
+    public const double AutohideGapDips = 14;
 }

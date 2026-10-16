@@ -17,6 +17,7 @@ public static class Palette
     public const uint SoilMid = 0xFF6B4226;
     public const uint SoilLo = 0xFF4E2F1C;
     public const uint SoilDeep = 0xFF3A2214;
+    public const uint SoilEdge = 0xFF22130B;  // unterste Zeile: saubere Kante, wenn der Streifen über dem Rand schwebt
 
     // Stein
     public const uint StoneHi = 0xFFB8B2A7;

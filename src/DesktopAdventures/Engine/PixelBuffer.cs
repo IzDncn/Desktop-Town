@@ -36,4 +36,27 @@ public sealed class PixelBuffer
 
     public uint Get(int x, int y) =>
         (uint)x >= (uint)Width || (uint)y >= (uint)Height ? 0 : Pixels[y * Width + x];
+
+    /// <summary>
+    /// Zeichnet einen Ausschnitt eines Sprites (transparente Pixel werden übersprungen).
+    /// flipX spiegelt den Ausschnitt horizontal (Figur schaut nach links).
+    /// </summary>
+    public void Draw(Sprite sprite, int srcX, int srcY, int width, int height, int destX, int destY, bool flipX = false)
+    {
+        for (int j = 0; j < height; j++)
+        {
+            int y = destY + j;
+            if ((uint)y >= (uint)Height) continue;
+
+            int srcRow = (srcY + j) * sprite.Width + srcX;
+            for (int i = 0; i < width; i++)
+            {
+                int x = destX + i;
+                if ((uint)x >= (uint)Width) continue;
+
+                uint color = sprite.Pixels[srcRow + (flipX ? width - 1 - i : i)];
+                if (color >> 24 != 0) Pixels[y * Width + x] = color;
+            }
+        }
+    }
 }

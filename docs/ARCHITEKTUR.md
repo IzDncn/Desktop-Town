@@ -4,8 +4,10 @@
 src/DesktopAdventures/
   Shell/      StripWindow (Fenster + Game-Loop), StripLayout (Rastermaße)
   Platform/   Win32: Taskleisten-/Monitor-Erkennung (ScreenDock), P/Invoke
-  Engine/     PixelBuffer (Software-Zeichenfläche), Palette, Noise
-  World/      GameWorld (Welt-Zustand), Landscape (prozedurales Gelände), Wind
+  Engine/     PixelBuffer (Software-Zeichenfläche), Sprite, Palette, Noise, ColorUtil
+  Characters/ Katalog (lädt Templates + Charakter-JSON, färbt Sprites ein), Definitionen, Marker-Farben
+  World/      GameWorld (Welt-Zustand), Landscape (Gelände), CharacterActor (Figuren-Verhalten), Wind
+  Content/    Templates/ und Characters/ (JSON + PNG, neben der .exe, ohne Code änderbar)
   GameConfig  zentrale Konstanten
 ```
 
@@ -26,3 +28,11 @@ Positioniert wird per `SetWindowPos` in physischen Pixeln (keine DIP-Rundungsfeh
 `Landscape` ist deterministisch (Seed). Statisches (Gelände, Steine, Büsche, Pilze) wird einmal in einen Puffer
 gemalt, Gras und Blumen werden pro Frame mit `Wind.At(x, t)` darübergelegt. `Landscape.SurfaceY(x)` liefert die
 Standhöhe für Gebäude und Figuren.
+
+## Charaktere
+`CharacterCatalog` lädt beim Start alle `Content/Characters/*.json`. Pro Charakter wird das Template-Sheet anhand der Palette
+umgefärbt (Marker-Farben → Palette) und die gewählten Ebenen werden daraufgelegt; das Ergebnis ist ein fertiges
+`CharacterSheet`. `CharacterActor` steuert Verhalten (stehen → laufen → stehen, Umkehr am Rand, Reaktion auf Klick) und
+zeichnet das passende Bild; gespiegelt wird zur Laufzeit. Details zum Format: `docs/CHARAKTERE.md`.
+
+Klicks: transparente Pixel des Fensters gehen an Windows durch, daher erreichen das Spiel nur Klicks auf Gras und Figuren.

@@ -9,9 +9,14 @@
     <RootNamespace>DesktopAdventures</RootNamespace>
     <AssemblyName>DesktopAdventures</AssemblyName>
     <Product>Desktop Adventures</Product>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Charaktere und Templates (JSON + PNG) liegen neben der .exe, damit man sie ohne Code-Änderung anpassen kann -->
+    <None Update="Content\**\*.*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 
 </Project>

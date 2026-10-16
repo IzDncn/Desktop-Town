@@ -1,0 +1,7 @@
+{
+  "name": "Mochi",
+  "template": "cat",
+  "speed": 18,
+  "idleSeconds": [3, 9],
+  "walkSeconds": [1, 4]
+}

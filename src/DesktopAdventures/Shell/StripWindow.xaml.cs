@@ -4,6 +4,8 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using System.IO;
+using DesktopAdventures.Characters;
 using DesktopAdventures.Engine;
 using DesktopAdventures.Platform;
 using DesktopAdventures.World;
@@ -21,6 +23,7 @@ public partial class StripWindow : Window
     private const double FollowFactor = 0.5; // wie schnell der Streifen der Autohide-Taskleiste folgt (0..1 je Tick)
 
     private readonly ScreenDock _dock = new();
+    private readonly CharacterCatalog _catalog;
     private readonly Stopwatch _clock = Stopwatch.StartNew();
     private readonly DispatcherTimer _timer;
 
@@ -38,6 +41,8 @@ public partial class StripWindow : Window
     public StripWindow()
     {
         InitializeComponent();
+
+        _catalog = CharacterCatalog.Load(Path.Combine(AppContext.BaseDirectory, "Content"));
 
         _timer = new DispatcherTimer(DispatcherPriority.Render)
         {
@@ -61,6 +66,16 @@ public partial class StripWindow : Window
         Rebuild();
         _lastTick = _clock.Elapsed;
         _timer.Start();
+    }
+
+    protected override void OnContentRendered(EventArgs e)
+    {
+        base.OnContentRendered(e);
+        if (_catalog.Errors.Count == 0) return;
+
+        MessageBox.Show("Einige Charaktere oder Templates konnten nicht geladen werden:\n\n" +
+                        string.Join("\n", _catalog.Errors),
+            "Desktop Adventures", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 
     protected override void OnClosed(EventArgs e)
@@ -93,7 +108,7 @@ public partial class StripWindow : Window
     private void Rebuild()
     {
         double dpi = VisualTreeHelper.GetDpi(this).DpiScaleX;
-        var area = _dock.Query();
+        var area = _dock.Query(dpi);
         _layout = StripLayout.Create(area.Width, dpi);
 
         _buffer = new PixelBuffer(_layout.ArtWidth, _layout.ArtHeight);
@@ -102,7 +117,10 @@ public partial class StripWindow : Window
         View.Width = _layout.ViewWidthDips;
         View.Height = _layout.ViewHeightDips;
 
-        _world = new GameWorld(_layout.ArtWidth, _layout.ArtHeight, GameConfig.WorldSeed);
+        IReadOnlyList<CharacterProfile> spawn = GameOptions.AllCharacters
+            ? _catalog.Profiles
+            : _catalog.Profiles.Where(p => p.StartUnlocked).ToList();
+        _world = new GameWorld(_layout.ArtWidth, _layout.ArtHeight, GameConfig.WorldSeed, spawn);
 
         _positioned = false;
         _applied = default;
@@ -133,7 +151,7 @@ public partial class StripWindow : Window
 
     private void PlaceWindow()
     {
-        var area = _dock.Query();
+        var area = _dock.Query(_layout.DpiScale);
         double targetY = area.Bottom - _layout.WindowHeightPx;
 
         if (!_positioned)
@@ -152,6 +170,14 @@ public partial class StripWindow : Window
 
         SetWindowPos(_hwnd, HWND_TOPMOST, next.X, next.Y, next.W, next.H, SWP_NOACTIVATE | SWP_NOOWNERZORDER);
         _applied = next;
+    }
+
+    private void View_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        // DIPs -> Kunst-Pixel: ein Kunst-Pixel ist PixelSize/Dpi DIPs groß.
+        var p = e.GetPosition(View);
+        double dipPerArt = _layout.PixelSize / _layout.DpiScale;
+        _world.Click((int)(p.X / dipPerArt), (int)(p.Y / dipPerArt));
     }
 
     private void Exit_Click(object sender, RoutedEventArgs e) => Application.Current.Shutdown();

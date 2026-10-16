@@ -10,7 +10,7 @@ namespace DesktopAdventures.World;
 /// </summary>
 public sealed class Landscape
 {
-    private const int GroundDepth = 20;   // mittlere Höhe des Bodens in Kunst-Pixeln
+    private const int GroundDepth = 13;   // mittlere Höhe des Bodens in Kunst-Pixeln
     private const int DecorCell = 30;     // Rastergröße für Dekor-Platzierung
 
     private readonly record struct Flower(int X, int BaseY, int Stem, uint Color);
@@ -58,8 +58,8 @@ public sealed class Landscape
     {
         for (int x = 0; x < Width; x++)
         {
-            double offset = (Noise.Smooth(x / 90.0, _seed + 1) * 2 - 1) * 3.2
-                          + (Noise.Smooth(x / 23.0, _seed + 2) * 2 - 1) * 1.0;
+            double offset = (Noise.Smooth(x / 90.0, _seed + 1) * 2 - 1) * 2.4
+                          + (Noise.Smooth(x / 23.0, _seed + 2) * 2 - 1) * 0.8;
             _surface[x] = Height - GroundDepth + (int)Math.Round(offset);
         }
     }
@@ -91,13 +91,19 @@ public sealed class Landscape
             };
         }
 
+        int fromBottom = Height - 1 - y;
+        if (fromBottom == 0) return SoilEdge;
+        if (fromBottom == 1) return SoilDeep;
+
         int s = depth - grassDepth;
         uint color = s switch
         {
-            < 2 => s == 0 || checker ? SoilHi : SoilMid,
-            < 5 => s < 4 || !checker ? SoilMid : SoilLo,
-            < 9 => SoilLo,
-            _ => checker || s > 11 ? SoilDeep : SoilLo,
+            0 => SoilHi,
+            1 => checker ? SoilHi : SoilMid,
+            2 => SoilMid,
+            3 => checker ? SoilMid : SoilLo,
+            < 6 => SoilLo,
+            _ => SoilDeep,
         };
 
         uint speck = Noise.Hash(x * 131 + y * 17, _seed + 9);

@@ -1,0 +1,14 @@
+{
+  "name": "Thunk",
+  "template": "humanoid",
+  "palette": {
+    "skin": "#e8b48a",
+    "hair": "#5a3a1e",
+    "shirt": "#b03a2e",
+    "pants": "#3b4a6b",
+    "boots": "#4a3428"
+  },
+  "layers": ["beard"],
+  "speed": 12,
+  "startUnlocked": true
+}

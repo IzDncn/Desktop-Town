@@ -1,0 +1,15 @@
+{
+  "name": "Pip",
+  "template": "humanoid",
+  "palette": {
+    "skin": "#c89070",
+    "hair": "#c87828",
+    "shirt": "#3c8c5a",
+    "pants": "#5a3c2a",
+    "accent": "#d23c46",
+    // Statt einer Farbe kann man auch drei Töne angeben: [hell, mittel, dunkel]
+    "boots": ["#8a6a4a", "#6a4a32", "#3a2a1c"]
+  },
+  "layers": ["cap", "scarf"],
+  "speed": 15
+}

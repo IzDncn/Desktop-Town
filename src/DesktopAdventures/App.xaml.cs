@@ -11,6 +11,7 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        GameOptions.Parse(e.Args);
 
         _singleInstance = new Mutex(initiallyOwned: true, "DesktopAdventures.SingleInstance", out bool isFirst);
         if (!isFirst)

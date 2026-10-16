@@ -1,0 +1,14 @@
+{
+  "name": "Merle",
+  "template": "humanoid",
+  "palette": {
+    "skin": "#f0c8a0",
+    "hair": "#ebebf0",
+    "shirt": "#3c50aa",
+    "pants": "#463c6e",
+    "accent": "#6e3ca0"
+  },
+  "layers": ["beard", "wizard_hat"],
+  "speed": 9,
+  "idleSeconds": [3, 8]
+}

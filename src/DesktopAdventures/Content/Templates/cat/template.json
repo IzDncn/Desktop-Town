@@ -1,0 +1,20 @@
+{
+  // Katze, 20x17 Pixel pro Bild, schaut nach rechts.
+  "frame": { "width": 20, "height": 17 },
+  "sheet": "sheet.png",
+
+  "animations": {
+    "idle":  { "row": 0, "frames": 4, "fps": 3 },
+    "walk":  { "row": 1, "frames": 4, "fps": 8 },
+    "react": { "row": 2, "frames": 4, "fps": 8 }   // Hüpfer
+  },
+
+  "slots": {
+    "fur":   { "marker": "red",     "default": "#dc8c3c" },
+    "belly": { "marker": "green",   "default": "#f5e6cd" },
+    "nose":  { "marker": "magenta", "default": "#f08c96" },
+    "eyes":  { "marker": "blue",    "default": "#3ca05a" }
+  },
+
+  "layers": {}
+}

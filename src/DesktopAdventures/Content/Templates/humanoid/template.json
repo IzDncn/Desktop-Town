@@ -1,0 +1,30 @@
+{
+  // Menschlicher Körperbau, 20x30 Pixel pro Bild, schaut nach rechts (links wird gespiegelt).
+  // sheet.png: je Zeile eine Animation, je Spalte ein Bild.
+  "frame": { "width": 20, "height": 30 },
+  "sheet": "sheet.png",
+
+  "animations": {
+    "idle":  { "row": 0, "frames": 4, "fps": 3 },
+    "walk":  { "row": 1, "frames": 6, "fps": 9 },
+    "react": { "row": 2, "frames": 4, "fps": 6 }   // Winken beim Anklicken
+  },
+
+  // Farb-Slots: "marker" ist die Farbfamilie im PNG, die ersetzt wird. "default" gilt, wenn der Charakter nichts angibt.
+  "slots": {
+    "skin":   { "marker": "red",     "default": "#e8b48a" },
+    "hair":   { "marker": "green",   "default": "#5a3a1e" },
+    "shirt":  { "marker": "blue",    "default": "#3f6fb5" },
+    "pants":  { "marker": "yellow",  "default": "#3b4a6b" },
+    "accent": { "marker": "magenta", "default": "#e0b030" },
+    "boots":  { "marker": "cyan",    "default": "#4a3428" }
+  },
+
+  // Zusatz-Ebenen, gleiches Layout wie sheet.png. Charaktere wählen sie per "layers".
+  "layers": {
+    "cap":        "layers/cap.png",
+    "wizard_hat": "layers/wizard_hat.png",
+    "beard":      "layers/beard.png",
+    "scarf":      "layers/scarf.png"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "Nox",
+  "template": "cat",
+  "palette": {
+    "fur": "#32323c",
+    "belly": "#50505f",
+    "eyes": "#e6c832"
+  },
+  "speed": 20,
+  "idleSeconds": [4, 12]
+}
