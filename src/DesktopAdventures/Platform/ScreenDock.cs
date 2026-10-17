@@ -1,3 +1,4 @@
+using System.IO;
 using System.Runtime.InteropServices;
 using static DesktopAdventures.Platform.NativeMethods;
 
@@ -37,7 +38,10 @@ public sealed class ScreenDock
         if (IsAutohide())
         {
             // Arbeitsbereich ignoriert die ausgeblendete Taskleiste -> ihr aktuelles Rechteck auswerten.
-            int visible = VisibleTrayHeight(info.rcMonitor);
+            int byRect = VisibleTrayHeight(info.rcMonitor);
+            int byProbe = ProbeTrayHeight(info.rcMonitor);
+            int visible = Math.Max(byRect, byProbe);
+            LogDebug(byRect, byProbe);
             int gap = (int)Math.Ceiling(GameConfig.AutohideGapDips * dpiScale);
             bottom = info.rcMonitor.Bottom - (visible > HotEdgePx ? visible : gap);
         }
@@ -54,6 +58,40 @@ public sealed class ScreenDock
         _autohide = ((uint)SHAppBarMessage(ABM_GETSTATE, ref data) & ABS_AUTOHIDE) != 0;
         _autohideCheckedAt = now;
         return _autohide;
+    }
+
+    /// <summary>
+    /// Zweite, unabhängige Messung: Von der Bildschirmunterkante nach oben abtasten, solange an der Stelle
+    /// ein Fenster der Taskleiste liegt. Greift auch, wenn Windows (z. B. Windows 11) das Fensterrechteck der
+    /// Taskleiste beim Ein-/Ausfahren nicht mitführt.
+    /// </summary>
+    private int ProbeTrayHeight(RECT monitor)
+    {
+        if (_tray == IntPtr.Zero) return 0;
+
+        int x = (monitor.Left + monitor.Right) / 2;
+        int found = 0;
+        for (int dy = 1; dy <= 160; dy += 2)
+        {
+            var hwnd = WindowFromPoint(new POINT { X = x, Y = monitor.Bottom - dy });
+            if (hwnd == IntPtr.Zero || GetAncestor(hwnd, GA_ROOT) != _tray) break;
+            found = dy;
+        }
+        return found;
+    }
+
+    private (int Rect, int Probe) _lastLogged = (-1, -1);
+
+    private void LogDebug(int byRect, int byProbe)
+    {
+        if (!GameOptions.DebugTaskbar || _lastLogged == (byRect, byProbe)) return;
+        _lastLogged = (byRect, byProbe);
+        try
+        {
+            File.AppendAllText(Path.Combine(Path.GetTempPath(), "desktop-adventures-taskbar.log"),
+                $"{DateTime.Now:HH:mm:ss.fff} autohide=true rect={byRect}px probe={byProbe}px{Environment.NewLine}");
+        }
+        catch (IOException) { /* Log ist nur Hilfsmittel */ }
     }
 
     /// <summary>Sichtbare Höhe einer unten liegenden Taskleiste; 0, wenn oben/seitlich oder nicht gefunden.</summary>

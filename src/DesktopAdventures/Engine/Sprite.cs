@@ -21,6 +21,13 @@ public sealed class Sprite
         Pixels = new uint[width * height];
     }
 
+    public void FillRect(int x, int y, int width, int height, uint argb)
+    {
+        for (int j = Math.Max(0, y); j < Math.Min(Height, y + height); j++)
+            for (int i = Math.Max(0, x); i < Math.Min(Width, x + width); i++)
+                Pixels[j * Width + i] = argb;
+    }
+
     public Sprite Clone()
     {
         var copy = new Sprite(Width, Height);

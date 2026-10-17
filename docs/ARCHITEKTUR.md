@@ -2,12 +2,14 @@
 
 ```
 src/DesktopAdventures/
-  Shell/      StripWindow (Fenster + Game-Loop), StripLayout (Rastermaße)
+  Shell/      StripWindow (Streifen + Game-Loop), BookWindow (Buch-Popup), StripLayout (Rastermaße)
   Platform/   Win32: Taskleisten-/Monitor-Erkennung (ScreenDock), P/Invoke
   Engine/     PixelBuffer (Software-Zeichenfläche), Sprite, Palette, Noise, ColorUtil
   Characters/ Katalog (lädt Templates + Charakter-JSON, färbt Sprites ein), Definitionen, Marker-Farben
   World/      GameWorld (Welt-Zustand), Landscape (Gelände), CharacterActor (Figuren-Verhalten), Wind
-  Content/    Templates/ und Characters/ (JSON + PNG, neben der .exe, ohne Code änderbar)
+  Ui/         Buch: BookScreen, Reiter (BookTab), UiContext (Immediate-Mode), BitmapFont, PixelIcon, BookTheme
+  GameState   Spielstand (freigeschaltete Charaktere), von Welt und Buch genutzt
+  Content/    Fonts/, Templates/ und Characters/ (JSON + PNG, neben der .exe, ohne Code änderbar)
   GameConfig  zentrale Konstanten
 ```
 
@@ -36,3 +38,9 @@ umgefärbt (Marker-Farben → Palette) und die gewählten Ebenen werden daraufge
 zeichnet das passende Bild; gespiegelt wird zur Laufzeit. Details zum Format: `docs/CHARAKTERE.md`.
 
 Klicks: transparente Pixel des Fensters gehen an Windows durch, daher erreichen das Spiel nur Klicks auf Gras und Figuren.
+
+## Buch
+`BookWindow` ist ein eigenes transparentes Fenster; `BookScreen` zeichnet Einband, Seiten, Lesezeichen und den aktiven `BookTab` in einen `PixelBuffer`
+(Größe `BookTheme.Width × Height` Kunst-Pixel), derselbe Renderer und dasselbe ganzzahlige Pixelraster wie der Streifen. Das UI ist Immediate-Mode:
+jeder Frame wird komplett neu gezeichnet, klickbare Flächen werden dabei über `UiContext.Button` angemeldet und beim Klick ausgelöst. Text kommt aus
+`BitmapFont` (Atlas aus `tools/make_font.py`). Geöffnet wird das Buch über `BookProp` im Gras (Klick → `WorldClick.Book`) oder das Kontextmenü.

@@ -1,6 +1,12 @@
 {
   "name": "Pip",
   "template": "humanoid",
+  "info": {
+    "title": "Barde",
+    "description": "Pip spielt auf seiner Laute, was ihm gerade einfällt. Bei Applaus springt er vor Freude in die Luft.",
+    "facts": ["Mag: Applaus", "Hobby: Lieder erfinden"],
+    "unlockHint": "Wird später durch eine Challenge freigeschaltet."
+  },
   "palette": {
     "skin": "#c89070",
     "hair": "#c87828",
@@ -11,5 +17,7 @@
     "boots": ["#8a6a4a", "#6a4a32", "#3a2a1c"]
   },
   "layers": ["cap", "scarf"],
+  // Überschreibt das Template-Verhalten: Pip jubelt bei jedem Klick (3x)
+  "behavior": { "onClick": [ { "animation": "cheer", "repeat": 3 } ] },
   "speed": 15
 }

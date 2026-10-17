@@ -1,6 +1,12 @@
 {
   "name": "Nox",
   "template": "cat",
+  "info": {
+    "title": "Katze",
+    "description": "Nox zeigt sich nur selten und verschwindet, sobald man ihr zu nahe kommt. Niemand weiß, wem sie wirklich gehört.",
+    "facts": ["Mag: Ruhe", "Hobby: Beobachten"],
+    "unlockHint": "Wird später durch eine Challenge freigeschaltet."
+  },
   "palette": {
     "fur": "#32323c",
     "belly": "#50505f",

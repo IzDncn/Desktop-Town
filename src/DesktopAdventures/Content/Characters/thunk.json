@@ -1,6 +1,12 @@
 {
   "name": "Thunk",
   "template": "humanoid",
+  "info": {
+    "title": "Barbar",
+    "description": "Thunk hat noch nie einen Kampf verloren, aber schon oft den Weg nach Hause. Er sammelt gern Beeren und redet nie mehr als nötig.",
+    "facts": ["Mag: Beeren", "Hasst: Kleine Türen"],
+    "unlockHint": "Von Anfang an dabei."
+  },
   "palette": {
     "skin": "#e8b48a",
     "hair": "#5a3a1e",

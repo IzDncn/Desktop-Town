@@ -15,9 +15,11 @@
         SnapsToDevicePixels="True">
 
     <!-- Nur die gezeichneten (deckenden) Pixel fangen Klicks ab, transparente Bereiche
-         lässt Windows durch. Rechtsklick auf die Landschaft: Beenden. -->
+         lässt Windows durch. Rechtsklick auf die Landschaft: Buch öffnen / Beenden. -->
     <Window.ContextMenu>
         <ContextMenu>
+            <MenuItem Header="Buch öffnen" Click="OpenBook_Click" />
+            <Separator />
             <MenuItem Header="Beenden" Click="Exit_Click" />
         </ContextMenu>
     </Window.ContextMenu>

@@ -1,6 +1,12 @@
 {
   "name": "Merle",
   "template": "humanoid",
+  "info": {
+    "title": "Zauberer",
+    "description": "Merle behauptet, über 300 Jahre alt zu sein. Seine Zauber klappen meistens – Hauptsache, niemand fragt wie.",
+    "facts": ["Mag: Pilzsuppe", "Hobby: Sterne zählen"],
+    "unlockHint": "Wird später durch eine Challenge freigeschaltet."
+  },
   "palette": {
     "skin": "#f0c8a0",
     "hair": "#ebebf0",

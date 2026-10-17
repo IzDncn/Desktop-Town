@@ -8,6 +8,7 @@ using System.IO;
 using DesktopAdventures.Characters;
 using DesktopAdventures.Engine;
 using DesktopAdventures.Platform;
+using DesktopAdventures.Ui;
 using DesktopAdventures.World;
 using Microsoft.Win32;
 using static DesktopAdventures.Platform.NativeMethods;
@@ -20,10 +21,14 @@ namespace DesktopAdventures.Shell;
 /// </summary>
 public partial class StripWindow : Window
 {
-    private const double FollowFactor = 0.5; // wie schnell der Streifen der Autohide-Taskleiste folgt (0..1 je Tick)
+    private const double FollowFactor = 0.5; // wie schnell der Streifen nach unten gleitet, wenn die Autohide-Taskleiste ausfährt (0..1 je Tick)
 
     private readonly ScreenDock _dock = new();
     private readonly CharacterCatalog _catalog;
+    private readonly GameState _state;
+    private readonly List<string> _startupErrors = new();
+    private BitmapFont? _font;
+    private BookWindow? _book;
     private readonly Stopwatch _clock = Stopwatch.StartNew();
     private readonly DispatcherTimer _timer;
 
@@ -42,7 +47,19 @@ public partial class StripWindow : Window
     {
         InitializeComponent();
 
-        _catalog = CharacterCatalog.Load(Path.Combine(AppContext.BaseDirectory, "Content"));
+        string content = Path.Combine(AppContext.BaseDirectory, "Content");
+        _catalog = CharacterCatalog.Load(content);
+        _startupErrors.AddRange(_catalog.Errors);
+        _state = new GameState(_catalog, GameOptions.AllCharacters);
+
+        try
+        {
+            _font = BitmapFont.Load(Path.Combine(content, "Fonts", "jersey10"));
+        }
+        catch (Exception ex)
+        {
+            _startupErrors.Add($"Schrift konnte nicht geladen werden (das Buch ist deaktiviert): {ex.Message}");
+        }
 
         _timer = new DispatcherTimer(DispatcherPriority.Render)
         {
@@ -71,16 +88,16 @@ public partial class StripWindow : Window
     protected override void OnContentRendered(EventArgs e)
     {
         base.OnContentRendered(e);
-        if (_catalog.Errors.Count == 0) return;
+        if (_startupErrors.Count == 0) return;
 
-        MessageBox.Show("Einige Charaktere oder Templates konnten nicht geladen werden:\n\n" +
-                        string.Join("\n", _catalog.Errors),
+        MessageBox.Show("Beim Laden sind Probleme aufgetreten:\n\n" + string.Join("\n", _startupErrors),
             "Desktop Adventures", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 
     protected override void OnClosed(EventArgs e)
     {
         _timer.Stop();
+        _book?.Close();
         SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
         base.OnClosed(e);
     }
@@ -117,9 +134,7 @@ public partial class StripWindow : Window
         View.Width = _layout.ViewWidthDips;
         View.Height = _layout.ViewHeightDips;
 
-        IReadOnlyList<CharacterProfile> spawn = GameOptions.AllCharacters
-            ? _catalog.Profiles
-            : _catalog.Profiles.Where(p => p.StartUnlocked).ToList();
+        IReadOnlyList<CharacterProfile> spawn = _catalog.Profiles.Where(_state.IsUnlocked).ToList();
         _world = new GameWorld(_layout.ArtWidth, _layout.ArtHeight, GameConfig.WorldSeed, spawn);
 
         _positioned = false;
@@ -161,8 +176,10 @@ public partial class StripWindow : Window
         }
         else
         {
+            // Fährt die Taskleiste ein (Ziel höher), sofort mitgehen, damit sie nie über dem Spiel liegt;
+            // beim Ausfahren weich nach unten gleiten.
             double d = targetY - _y;
-            _y = Math.Abs(d) < 0.5 ? targetY : _y + d * FollowFactor;
+            _y = d < 0 || Math.Abs(d) < 0.5 ? targetY : _y + d * FollowFactor;
         }
 
         var next = (X: area.Left, Y: (int)Math.Round(_y), W: _layout.WindowWidthPx, H: _layout.WindowHeightPx);
@@ -177,7 +194,42 @@ public partial class StripWindow : Window
         // DIPs -> Kunst-Pixel: ein Kunst-Pixel ist PixelSize/Dpi DIPs groß.
         var p = e.GetPosition(View);
         double dipPerArt = _layout.PixelSize / _layout.DpiScale;
-        _world.Click((int)(p.X / dipPerArt), (int)(p.Y / dipPerArt));
+        if (_world.Click((int)(p.X / dipPerArt), (int)(p.Y / dipPerArt)) == WorldClick.Book)
+            ToggleBook();
+    }
+
+    private void OpenBook_Click(object sender, RoutedEventArgs e)
+    {
+        if (_book == null) ToggleBook();
+        else _book.Activate();
+    }
+
+    /// <summary>Öffnet das Buch über dem Gras, mittig auf dem Bildschirm; ein zweiter Aufruf schließt es wieder.</summary>
+    private void ToggleBook()
+    {
+        if (_book != null)
+        {
+            _book.Close();
+            return;
+        }
+        if (_font == null) return;
+
+        var screen = new BookScreen(_font, new BookTab[]
+        {
+            new CharactersTab(_catalog.Profiles, _state),
+            new BuildingsTab(),
+        });
+
+        var area = _dock.Query(_layout.DpiScale);
+        int pixel = _layout.PixelSize;
+        var (width, height) = BookWindow.SizePx(pixel);
+        int x = (area.Left + area.Right - width) / 2;
+        int y = Math.Max(0, area.Bottom - 40 * pixel - height); // knapp über dem Gras
+
+        _book = new BookWindow(screen, pixel, _layout.DpiScale, x, y);
+        _book.Closed += (_, _) => _book = null;
+        _book.Show();
+        _book.Activate();
     }
 
     private void Exit_Click(object sender, RoutedEventArgs e) => Application.Current.Shutdown();

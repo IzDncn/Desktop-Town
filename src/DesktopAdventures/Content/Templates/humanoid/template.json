@@ -7,7 +7,16 @@
   "animations": {
     "idle":  { "row": 0, "frames": 4, "fps": 3 },
     "walk":  { "row": 1, "frames": 6, "fps": 9 },
-    "react": { "row": 2, "frames": 4, "fps": 6 }   // Winken beim Anklicken
+    "react": { "row": 2, "frames": 4, "fps": 6 },  // Winken
+    "cheer": { "row": 3, "frames": 4, "fps": 6 }   // Jubelsprung
+  },
+
+  // Standardverhalten aller Humanoiden (Charaktere können es in ihrer JSON überschreiben)
+  "behavior": {
+    "onClick": [
+      { "animation": "react", "weight": 2, "repeat": 2 },
+      { "animation": "cheer", "weight": 1, "repeat": 2 }
+    ]
   },
 
   // Farb-Slots: "marker" ist die Farbfamilie im PNG, die ersetzt wird. "default" gilt, wenn der Charakter nichts angibt.

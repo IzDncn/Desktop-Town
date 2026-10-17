@@ -16,5 +16,9 @@
     "eyes":  { "marker": "blue",    "default": "#3ca05a" }
   },
 
+  "behavior": {
+    "onClick": [ { "animation": "react", "repeat": 2 } ]
+  },
+
   "layers": {}
 }

@@ -3,10 +3,16 @@ using DesktopAdventures.Engine;
 
 namespace DesktopAdventures.World;
 
+/// <summary>Worauf in der Welt geklickt wurde.</summary>
+public enum WorldClick { None, Character, Book }
+
 /// <summary>Die Spielwelt: Landschaft und Figuren (später auch Gebäude und Fortschritt).</summary>
 public sealed class GameWorld
 {
+    private const int BookX = 36;
+
     private readonly List<CharacterActor> _actors = new();
+    private readonly BookProp _book = new(BookX);
 
     public Landscape Landscape { get; }
     public double Time { get; private set; }
@@ -37,17 +43,18 @@ public sealed class GameWorld
         // Weiter vorn (größeres Y) liegt weiter oben im Bild.
         _actors.Sort((a, b) => a.FootY(Landscape).CompareTo(b.FootY(Landscape)));
         foreach (var actor in _actors) actor.Draw(target, Landscape);
+        _book.Draw(target, Landscape, Time);
     }
 
-    /// <summary>Klick in Kunst-Pixel-Koordinaten; liefert true, wenn eine Figur getroffen wurde.</summary>
-    public bool Click(int artX, int artY)
+    /// <summary>Klick in Kunst-Pixel-Koordinaten.</summary>
+    public WorldClick Click(int artX, int artY)
     {
         for (int i = _actors.Count - 1; i >= 0; i--) // oberste Figur zuerst
         {
             if (!_actors[i].Contains(artX, artY, Landscape)) continue;
             _actors[i].Poke();
-            return true;
+            return WorldClick.Character;
         }
-        return false;
+        return _book.Contains(artX, artY, Landscape) ? WorldClick.Book : WorldClick.None;
     }
 }

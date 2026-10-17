@@ -1,6 +1,12 @@
 {
   "name": "Mochi",
   "template": "cat",
+  "info": {
+    "title": "Katze",
+    "description": "Mochi gehört niemandem und allen. Sie schläft in der Sonne und taucht auf, sobald es etwas zu essen gibt.",
+    "facts": ["Mag: Sonnenplätze", "Hasst: Regen"],
+    "unlockHint": "Wird später durch eine Challenge freigeschaltet."
+  },
   "speed": 18,
   "idleSeconds": [3, 9],
   "walkSeconds": [1, 4]

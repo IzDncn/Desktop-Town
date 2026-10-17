@@ -12,13 +12,13 @@ Voraussetzung: Windows 10/11, .NET 8 SDK.
 dotnet run --project src/DesktopAdventures
 ```
 
-oder `DesktopAdventures.sln` in Rider / Visual Studio öffnen. Beenden: Rechtsklick auf die Landschaft → *Beenden*.
+oder `DesktopAdventures.sln` in Rider / Visual Studio öffnen. Das Buch öffnet per Klick auf das Buch im Gras oder per Rechtsklick → *Buch öffnen*. Beenden: Rechtsklick → *Beenden*.
 
 ## Etappen
 
 - [x] 1. Fundament: Streifen auf der Taskleiste, Pixel-Engine, prozedurale Landschaft
 - [x] 2. Welt & Charaktere: Sprite-System, datengetriebene Charaktere, Figuren laufen durch die Landschaft
-- [ ] 3. Buch-Popup: Pixel-UI im Stil des Referenzbilds, Tabs
+- [x] 3. Buch-Popup: Pixel-UI im Stil des Referenzbilds, Reiter *Charaktere* (komplett) und *Gebäude* (Leerzustand)
 - [ ] 4. Spielzustand: Speichern, Ressourcen, Challenges, Freischaltungen
 - [ ] 5. Bauen & Inhalte: Häuser, weitere Charaktere, Tageszeit, Tray-Icon, Release-Workflow
 

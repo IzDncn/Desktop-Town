@@ -14,6 +14,7 @@ internal static class NativeMethods
     public static readonly IntPtr HWND_TOPMOST = new(-1);
 
     public const uint MONITOR_DEFAULTTOPRIMARY = 1;
+    public const uint GA_ROOT = 2;
     public const uint ABM_GETSTATE = 4;
     public const uint ABS_AUTOHIDE = 1;
 
@@ -67,6 +68,12 @@ internal static class NativeMethods
     [DllImport("user32.dll")]
     public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter,
         int x, int y, int cx, int cy, uint flags);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr WindowFromPoint(POINT point);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetAncestor(IntPtr hWnd, uint flags);
 
     [DllImport("shell32.dll")]
     public static extern UIntPtr SHAppBarMessage(uint dwMessage, ref APPBARDATA data);

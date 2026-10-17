@@ -84,7 +84,13 @@ public sealed class CharacterCatalog
 
         var frame = template.Definition.Frame;
         var clips = template.Definition.Animations.ToDictionary(
-            a => a.Key, a => new AnimationClip(a.Value.Row, a.Value.Frames, a.Value.Fps, a.Value.Loop));
+            a => a.Key, a => new AnimationClip(a.Value.Row, a.Value.Frames, a.Value.Fps, a.Value.Loop),
+            StringComparer.OrdinalIgnoreCase);
+
+        if (def.Extra != null)
+            image = AppendExtra(image, clips, template, def.Extra, palette, Path.GetDirectoryName(file)!);
+
+        var behavior = ResolveBehavior(template.Definition.Behavior, def.Behavior, clips);
 
         string id = Path.GetFileNameWithoutExtension(file);
         return new CharacterProfile
@@ -92,11 +98,82 @@ public sealed class CharacterCatalog
             Id = id,
             Name = string.IsNullOrWhiteSpace(def.Name) ? id : def.Name,
             Sheet = new CharacterSheet(image, frame.Width, frame.Height, clips),
+            Info = new CharacterInfo(
+                def.Info?.Title ?? "",
+                def.Info?.Description ?? "Über diesen Charakter ist noch nichts bekannt.",
+                (IReadOnlyList<string>?)def.Info?.Facts ?? Array.Empty<string>(),
+                def.Info?.UnlockHint ?? "Noch nicht freigeschaltet."),
             Speed = Math.Max(0, def.Speed),
             IdleSeconds = ParseRange(def.IdleSeconds, "idleSeconds"),
             WalkSeconds = ParseRange(def.WalkSeconds, "walkSeconds"),
             StartUnlocked = def.StartUnlocked,
+            OnClick = behavior.OnClick,
+            IdleActions = behavior.IdleActions,
+            IdleActionChance = behavior.Chance,
         };
+    }
+
+    /// <summary>Hängt die Zusatz-Animationen eines einzelnen Charakters unter das Sheet.</summary>
+    private static Sprite AppendExtra(Sprite image, Dictionary<string, AnimationClip> clips, LoadedTemplate template,
+        ExtraAnimationsDefinition extra, Dictionary<string, ShadeSet> palette, string characterDir)
+    {
+        var frame = template.Definition.Frame;
+        var extraSprite = Recolor(Sprite.Load(Path.Combine(characterDir, extra.Sheet)), palette);
+        if (extraSprite.Height % frame.Height != 0)
+            throw new InvalidDataException(
+                $"extra.sheet: Höhe {extraSprite.Height} ist kein Vielfaches der Bildhöhe {frame.Height}.");
+
+        int rowOffset = image.Height / frame.Height;
+        foreach (var (name, a) in extra.Animations)
+        {
+            if (clips.ContainsKey(name))
+                throw new InvalidDataException($"extra: Animation '{name}' gibt es im Template schon.");
+            ValidateClip($"extra, Animation '{name}'", a, frame, extraSprite);
+            clips[name] = new AnimationClip(a.Row + rowOffset, a.Frames, a.Fps, a.Loop);
+        }
+
+        var combined = new Sprite(Math.Max(image.Width, extraSprite.Width), image.Height + extraSprite.Height);
+        CopyInto(combined, image, 0);
+        CopyInto(combined, extraSprite, image.Height);
+        return combined;
+    }
+
+    private static void CopyInto(Sprite target, Sprite source, int offsetY)
+    {
+        for (int y = 0; y < source.Height; y++)
+            Array.Copy(source.Pixels, y * source.Width, target.Pixels, (y + offsetY) * target.Width, source.Width);
+    }
+
+    private static (IReadOnlyList<ActionChoice> OnClick, IReadOnlyList<ActionChoice> IdleActions, double Chance)
+        ResolveBehavior(BehaviorDefinition? template, BehaviorDefinition? character, Dictionary<string, AnimationClip> clips)
+    {
+        var onClickDef = character?.OnClick ?? template?.OnClick;
+        var idleDef = character?.IdleActions ?? template?.IdleActions;
+        double chance = character?.IdleActionChance ?? template?.IdleActionChance ?? 0.35;
+
+        // Ohne Angabe: Klick spielt "react", falls es die Animation gibt.
+        onClickDef ??= clips.ContainsKey("react") ? new List<ActionDefinition> { new() { Animation = "react", Repeat = 2 } } : new();
+        idleDef ??= new();
+
+        if (chance is < 0 or > 1)
+            throw new InvalidDataException("behavior.idleActionChance muss zwischen 0 und 1 liegen.");
+
+        return (ToChoices("behavior.onClick", onClickDef, clips), ToChoices("behavior.idleActions", idleDef, clips), chance);
+    }
+
+    private static List<ActionChoice> ToChoices(string field, List<ActionDefinition> actions, Dictionary<string, AnimationClip> clips)
+    {
+        var result = new List<ActionChoice>();
+        foreach (var a in actions)
+        {
+            if (!clips.ContainsKey(a.Animation))
+                throw new InvalidDataException(
+                    $"{field}: Animation '{a.Animation}' existiert nicht. Vorhanden: {Join(clips.Keys)}.");
+            if (a.Weight <= 0 || a.Repeat < 1)
+                throw new InvalidDataException($"{field}, '{a.Animation}': weight > 0 und repeat >= 1 nötig.");
+            result.Add(new ActionChoice(a.Animation, a.Weight, a.Repeat));
+        }
+        return result;
     }
 
     private static (double Min, double Max) ParseRange(double[] values, string name)
@@ -214,17 +291,23 @@ public sealed class CharacterCatalog
         if (!def.Animations.Keys.Contains("idle", StringComparer.OrdinalIgnoreCase))
             throw new InvalidDataException(prefix + "Animation \"idle\" fehlt.");
 
+        if (sheet.Height % def.Frame.Height != 0)
+            throw new InvalidDataException(prefix + $"Sheet-Höhe {sheet.Height} ist kein Vielfaches der Bildhöhe {def.Frame.Height}.");
+
         foreach (var (anim, a) in def.Animations)
-        {
-            if (a.Frames < 1 || a.Fps <= 0)
-                throw new InvalidDataException(prefix + $"Animation '{anim}': frames >= 1 und fps > 0 nötig.");
-            if (a.Row < 0 || (a.Row + 1) * def.Frame.Height > sheet.Height || a.Frames * def.Frame.Width > sheet.Width)
-                throw new InvalidDataException(prefix + $"Animation '{anim}' liegt außerhalb des Sheets ({sheet.Width}x{sheet.Height}).");
-        }
+            ValidateClip(prefix + $"Animation '{anim}'", a, def.Frame, sheet);
 
         foreach (var (slot, s) in def.Slots)
             if (!SlotMarkers.IsFamily(s.Marker))
                 throw new InvalidDataException(prefix + $"Slot '{slot}': unbekannter Marker '{s.Marker}' (erlaubt: {Join(SlotMarkers.FamilyNames)}).");
+    }
+
+    private static void ValidateClip(string where, AnimationDefinition a, FrameSize frame, Sprite sheet)
+    {
+        if (a.Frames < 1 || a.Fps <= 0)
+            throw new InvalidDataException($"{where}: frames >= 1 und fps > 0 nötig.");
+        if (a.Row < 0 || (a.Row + 1) * frame.Height > sheet.Height || a.Frames * frame.Width > sheet.Width)
+            throw new InvalidDataException($"{where} liegt außerhalb des Sheets ({sheet.Width}x{sheet.Height}).");
     }
 
     // ---------- Hilfen ----------

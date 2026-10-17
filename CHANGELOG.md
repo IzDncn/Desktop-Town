@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.3.0 – Etappe 3: Buch-Popup
+- Buch im Gras (funkelt gelegentlich); Klick oder Rechtsklick → *Buch öffnen* zeigt das Popup im Pixel-Stil mit Lesezeichen-Reitern
+  (Esc schließt, Pfeiltasten wechseln den Reiter)
+- Reiter *Charaktere*: Übersichtsraster mit Blättern, gesperrte Charaktere als Silhouette, Detailseite mit animierter Vorschau
+  (Klick spielt eine Klick-Aktion), Titel, Beschreibung, Fakten und Freischalt-Hinweis aus der Charakter-JSON (`info`)
+- Reiter *Gebäude*: Leerzustand, bis es Gebäude gibt
+- Bitmap-Schrift (Jersey 10, OFL) mit Umlauten, `tools/make_font.py`
+- `GameState` (freigeschaltete Charaktere), `PixelBuffer` mit Clip-Rechteck, Skalierung und Tint
+- Doku: Infos im Buch und Reiter erweitern in `docs/CHARAKTERE.md`
+
+## 0.2.1 – Taskleiste & Animationssystem
+- Fix: Beim Einfahren der Autohide-Taskleiste geht der Streifen sofort mit nach oben, die Taskleiste liegt nie mehr über dem Spiel.
+  Neben dem Fensterrechteck wird die Taskleiste zusätzlich über Abtastung vom unteren Rand erkannt (Windows 11);
+  `--debug-taskbar` schreibt die Messwerte nach `%TEMP%\desktop-adventures-taskbar.log`
+- Verhalten per JSON: `behavior.onClick`, `idleActions`, `idleActionChance` (gewichtet, mit Wiederholungen); Template-Standard,
+  pro Charakter überschreibbar
+- `extra`: Zusatz-Animationen nur für einen einzelnen Charakter (eigenes Sheet)
+- Neue Animation `cheer` (Jubelsprung) für Humanoide; Pip jubelt bei Klick (Beispiel für Überschreiben)
+- Doku: Entwickler-Anleitung für Animationen und Verhalten in `docs/CHARAKTERE.md`
+
 ## 0.2.0 – Etappe 2: Welt & Charaktere
 - Landschaft sitzt höher: Bei ausgeblendeter Taskleiste bleibt ein DPI-abhängiger Abstand (`GameConfig.AutohideGapDips`),
   damit sie wieder einfahren kann; unterste Bodenzeile als saubere Kante

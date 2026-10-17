@@ -80,7 +80,7 @@ ARM_DX = [0, -1, 0, 0, 1, 0]
 
 
 def pose(anim, k):
-    p = dict(hb=0, fx=0, bx=0, lf=0, lb=0, arm=0, wave=False, hand=0)
+    p = dict(hb=0, fx=0, bx=0, lf=0, lb=0, arm=0, wave=False, cheer=False, hand=0)
     if anim == "idle":
         p["hb"] = [0, 0, 1, 1][k]
     elif anim == "walk":
@@ -88,6 +88,11 @@ def pose(anim, k):
                  lf=LIFT_F[k], lb=LIFT_B[k], arm=ARM_DX[k])
     elif anim == "react":
         p.update(wave=True, hand=[0, 1, 0, -1][k], hb=0)
+    elif anim == "cheer":
+        hb = [0, -1, -2, -1][k]
+        air = hb < 0
+        p.update(cheer=True, hand=[0, 1, 0, -1][k], hb=hb,
+                 fx=1 if air else 0, bx=-1 if air else 0, lf=1 if air else 0, lb=1 if air else 0)
     return p
 
 
@@ -121,7 +126,12 @@ def humanoid_base(p):
     for x in (9, 11):
         cv.rect(x, 7 + b, 1, 2, OUTLINE)
     # Arm
-    if p["wave"]:
+    if p["cheer"]:
+        # beide Arme hoch; hinterer Arm links vom Körper
+        cv.rect(2, 11 + b, 2, 2, c(SHIRT, LO))
+        cv.rect(1, 9 + b, 2, 2, c(SHIRT, LO))
+        cv.rect(0 - p["hand"], 7 + b, 2, 2, c(SKIN, MID))
+    if p["wave"] or p["cheer"]:
         cv.rect(12, 11 + b, 2, 2, c(SHIRT, LO))
         cv.rect(13, 9 + b, 2, 2, c(SHIRT, LO))
         cv.rect(13 + p["hand"], 7 + b, 2, 2, c(SKIN, MID))
@@ -178,7 +188,7 @@ def layer_scarf(p):
     return cv.outline()
 
 
-HUMANOID_ANIMS = [("idle", 4), ("walk", 6), ("react", 4)]
+HUMANOID_ANIMS = [("idle", 4), ("walk", 6), ("react", 4), ("cheer", 4)]
 
 
 def build_sheet(frame_w, frame_h, anims, fn, cols):
