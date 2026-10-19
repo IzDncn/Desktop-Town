@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1 – Buildfehler behoben
+- `GameState.cs`: fehlendes `using System.IO;` (IOException)
+- `StripWindow.xaml.cs`: fehlendes `using System.Windows.Controls;` (MenuItem im Debug-Menü)
+
 ## 0.4.0 – Etappe 4: Spielstand, Challenges, Freischaltungen
 - Spielstand (`%APPDATA%\DesktopAdventures\save.json`): Freischaltungen, Challenges, Statistiken, Buch-Position; Autosave, Speichern beim Beenden/Herunterfahren,
   atomares Schreiben, beschädigte Dateien werden gesichert
