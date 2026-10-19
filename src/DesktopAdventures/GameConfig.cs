@@ -18,4 +18,9 @@ public static class GameConfig
     /// <summary>Abstand (DIPs) zum unteren Bildschirmrand, solange die Taskleiste automatisch ausgeblendet ist.
     /// Ohne diesen Spielraum kann sie nicht mehr einfahren. Bei Problemen größer wählen.</summary>
     public const double AutohideGapDips = 14;
+
+    /// <summary>true: Der Streifen folgt einer ausgeblendeten Taskleiste beim Ein-/Ausfahren.
+    /// false: Er bleibt dauerhaft über der vollen Taskleistenhöhe (robuste Notlösung, falls das Mitwandern
+    /// auf einem System nicht funktioniert).</summary>
+    public static readonly bool AutohideFollowsTaskbar = true;
 }

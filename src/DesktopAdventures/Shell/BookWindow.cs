@@ -28,6 +28,13 @@ public sealed class BookWindow : Window
     private readonly int _pixelSize;
     private readonly double _dpiScale;
     private readonly int _screenX, _screenY;
+    private IntPtr _hwnd;
+
+    /// <summary>true, wenn der Nutzer das Buch verschoben hat.</summary>
+    public bool Moved { get; private set; }
+
+    /// <summary>Letzte Position (linke obere Ecke, physische Bildschirm-Pixel); wird beim Schließen und nach dem Verschieben aktualisiert.</summary>
+    public (int X, int Y) LastPosition { get; private set; }
 
     /// <summary>Größe des Fensters in physischen Pixeln.</summary>
     public static (int Width, int Height) SizePx(int pixelSize) => (BookTheme.Width * pixelSize, BookTheme.Height * pixelSize);
@@ -67,7 +74,7 @@ public sealed class BookWindow : Window
 
         _view.MouseMove += (_, e) => { var (x, y) = ToArt(e); _screen.MouseMove(x, y); };
         _view.MouseLeave += (_, _) => _screen.MouseLeave();
-        _view.MouseLeftButtonDown += (_, e) => { var (x, y) = ToArt(e); _screen.MouseMove(x, y); _screen.Click(x, y); };
+        _view.MouseLeftButtonDown += OnMouseDown;
         KeyDown += OnKeyDown;
         _screen.CloseRequested += Close;
 
@@ -82,13 +89,20 @@ public sealed class BookWindow : Window
     {
         base.OnSourceInitialized(e);
 
-        var hwnd = new WindowInteropHelper(this).Handle;
-        SetWindowLong(hwnd, GWL_EXSTYLE, GetWindowLong(hwnd, GWL_EXSTYLE) | WS_EX_TOOLWINDOW); // nicht in Alt+Tab
+        _hwnd = new WindowInteropHelper(this).Handle;
+        SetWindowLong(_hwnd, GWL_EXSTYLE, GetWindowLong(_hwnd, GWL_EXSTYLE) | WS_EX_TOOLWINDOW); // nicht in Alt+Tab
         var (w, h) = SizePx(_pixelSize);
-        SetWindowPos(hwnd, HWND_TOPMOST, _screenX, _screenY, w, h, SWP_NOOWNERZORDER);
+        SetWindowPos(_hwnd, HWND_TOPMOST, _screenX, _screenY, w, h, SWP_NOOWNERZORDER);
+        LastPosition = (_screenX, _screenY);
 
         Draw();
         _timer.Start();
+    }
+
+    protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+    {
+        RememberPosition();
+        base.OnClosing(e);
     }
 
     protected override void OnClosed(EventArgs e)
@@ -103,6 +117,32 @@ public sealed class BookWindow : Window
         _screen.Render(_buffer, _clock.Elapsed.TotalSeconds);
         _bitmap.WritePixels(new Int32Rect(0, 0, _buffer.Width, _buffer.Height), _buffer.Pixels, _buffer.Width * 4, 0);
         _view.Cursor = _screen.WantsHandCursor ? Cursors.Hand : Cursors.Arrow;
+    }
+
+    /// <summary>Klick auf eine Schaltfläche löst sie aus; Klick auf eine freie Stelle des Buchs zieht das ganze Fenster.</summary>
+    private void OnMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        var (x, y) = ToArt(e);
+        _screen.MouseMove(x, y);
+        if (_screen.Click(x, y)) return;
+
+        try
+        {
+            DragMove();
+        }
+        catch (InvalidOperationException)
+        {
+            return; // Maustaste war schon wieder losgelassen
+        }
+        Moved = true;
+        RememberPosition();
+        _screen.MouseLeave();
+    }
+
+    private void RememberPosition()
+    {
+        if (_hwnd != IntPtr.Zero && GetWindowRect(_hwnd, out var rect))
+            LastPosition = (rect.Left, rect.Top);
     }
 
     private (int X, int Y) ToArt(MouseEventArgs e)

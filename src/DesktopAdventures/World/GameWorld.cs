@@ -13,6 +13,9 @@ public sealed class GameWorld
 
     private readonly List<CharacterActor> _actors = new();
     private readonly BookProp _book = new(BookX);
+    private readonly Random _random = new();
+    private readonly int _artWidth;
+    private readonly int _seed;
 
     public Landscape Landscape { get; }
     public double Time { get; private set; }
@@ -20,6 +23,8 @@ public sealed class GameWorld
     public GameWorld(int artWidth, int artHeight, int seed, IReadOnlyList<CharacterProfile> characters)
     {
         Landscape = new Landscape(artWidth, artHeight, seed);
+        _artWidth = artWidth;
+        _seed = seed;
 
         // Gleichmäßig über die Breite verteilen, damit sich Figuren beim Start nicht überlagern.
         for (int i = 0; i < characters.Count; i++)
@@ -28,6 +33,17 @@ public sealed class GameWorld
             double jitter = (Noise.Value(i, seed + 50) - 0.5) * artWidth / (characters.Count * 3.0);
             _actors.Add(new CharacterActor(characters[i], artWidth * slot + jitter, (int)Noise.Hash(i, seed + 60), artWidth));
         }
+    }
+
+    /// <summary>Neuer Charakter (z. B. durch eine Challenge): erscheint an zufälliger Stelle und jubelt kurz.</summary>
+    public void AddCharacter(CharacterProfile profile)
+    {
+        if (_actors.Any(a => a.Profile.Id == profile.Id)) return;
+
+        double x = _artWidth * (0.15 + 0.7 * _random.NextDouble());
+        var actor = new CharacterActor(profile, x, _random.Next(), _artWidth);
+        actor.Poke();
+        _actors.Add(actor);
     }
 
     public void Update(double dtSec)

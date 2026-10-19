@@ -1,0 +1,8 @@
+{
+  "name": "Nachtschwärmer",
+  "description": "Spiele insgesamt 30 Minuten. Manche Katzen zeigen sich nur Ausdauernden.",
+  "order": 50,
+  "requires": ["geduld"],
+  "goal": { "stat": "playtime_minutes", "target": 30, "unit": "Minuten" },
+  "rewards": [ { "type": "unlockCharacter", "id": "nox" } ]
+}

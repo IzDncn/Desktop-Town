@@ -1,0 +1,7 @@
+{
+  "name": "Buchwurm",
+  "description": "Öffne das Buch 5 Mal. (Diese Challenge hat keine Belohnung.)",
+  "order": 40,
+  "goal": { "stat": "book_opened", "target": 5 },
+  "rewards": []
+}

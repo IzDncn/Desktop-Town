@@ -34,7 +34,7 @@ Datei `Content/Characters/<id>.json` anlegen, z. B. `lena.json`:
 | `layers` | Ebenen des Templates, in Zeichenreihenfolge (die letzte liegt oben) |
 | `speed` | Lauftempo in Kunst-Pixeln/s (0 = bleibt stehen) |
 | `idleSeconds` / `walkSeconds` | `[min, max]` Sekunden Stehen bzw. Laufen |
-| `startUnlocked` | von Anfang an da (später: Freischaltung durch Challenges) |
+| `startUnlocked` | von Anfang an da; sonst wird der Charakter durch eine Challenge freigeschaltet (`docs/CHALLENGES.md`) |
 
 Die Datei-ID (`lena`) ist die Charakter-ID. Fehler (Tippfehler, unbekannter Slot/Ebene) erscheinen beim Start als Meldung,
 der Rest des Spiels läuft weiter.
@@ -155,8 +155,8 @@ Handbearbeitete PNGs werden dabei überschrieben – wer von Hand weiterzeichnet
 
 # Infos im Buch (Beschreibung, Fakten, Freischalt-Hinweis)
 
-Das Buch (Klick auf das Buch im Gras oder Rechtsklick → *Buch öffnen*) zeigt links alle Charaktere als Karten (4 pro Reihe, 12 pro Seite, Blättern
-mit den Pfeilen; neue Charaktere erscheinen automatisch) und rechts die Details des gewählten. Alle Texte stehen in der Charakter-JSON im Block `info`:
+Das Buch (Klick auf das Buch im Gras oder Rechtsklick → *Buch öffnen*) zeigt im Reiter *Charaktere* links die Charaktere als Karten (4 pro Reihe, 12 pro Seite, Blättern
+mit den Pfeilen; neue Charaktere erscheinen automatisch) und rechts die Details des gewählten. Das Untermenü oben auf der linken Seite schaltet zwischen *Freigeschaltet* und *Gesperrt* um. Das Buch lässt sich an jeder freien Stelle mit der Maus verschieben. Alle Texte stehen in der Charakter-JSON im Block `info`:
 
 ```json
 "info": {
@@ -170,16 +170,16 @@ mit den Pfeilen; neue Charaktere erscheinen automatisch) und rechts die Details 
 | Feld | Wird angezeigt | Richtwert |
 |---|---|---|
 | `name` (Hauptfeld) | Überschrift links oben auf der rechten Seite | bis ca. 12 Zeichen |
-| `info.title` | rechts neben dem Namen (z. B. Klasse/Beruf) | bis ca. 14 Zeichen |
-| `info.description` | Fließtext unter dem Vorschaubild; `\n` = neue Zeile | bis ca. 160 Zeichen (6 Zeilen), Überlänge wird mit „…“ abgeschnitten |
-| `info.facts` | kurze Zeilen rechts neben dem Vorschaubild, eine pro Eintrag | höchstens 3 Zeilen (ca. 16 Zeichen je Zeile, längere Einträge werden umgebrochen) |
+| `info.title` | rechts neben dem Namen (z. B. Klasse/Beruf) | bis ca. 12 Zeichen |
+| `info.description` | Fließtext unter dem Vorschaubild; `\n` = neue Zeile | bis ca. 140 Zeichen (5 Zeilen à ca. 28), Überlänge wird mit „…“ abgeschnitten |
+| `info.facts` | kurze Zeilen rechts neben dem Vorschaubild, eine pro Eintrag | höchstens 3 Zeilen (ca. 18 Zeichen je Zeile, längere Einträge werden umgebrochen) |
 | `info.unlockHint` | statt Beschreibung, solange der Charakter gesperrt ist | wie `description` |
 
 - Fehlt `info` ganz oder teilweise, erscheinen neutrale Platzhaltertexte; das Buch funktioniert immer.
-- **Gesperrte Charaktere** werden als Silhouette mit „???“ gezeigt, ohne Name, Titel, Beschreibung und Fakten – nur `unlockHint` ist sichtbar. Welche Charaktere freigeschaltet sind, steuert aktuell `startUnlocked` (ab Etappe 4: Challenges).
+- **Gesperrte Charaktere** werden als Silhouette mit „???“ gezeigt, ohne Name, Titel, Beschreibung und Fakten – nur `unlockHint` ist sichtbar. Welche Charaktere freigeschaltet sind, steuern `startUnlocked` und die Challenges (siehe `docs/CHALLENGES.md`). Ist eine Challenge hinterlegt, die den Charakter freischaltet, zeigt das Buch stattdessen deren Beschreibung samt Fortschritt; `unlockHint` gilt nur, wenn es keine solche Challenge gibt.
 - **Vorschau:** Im Buch spielt der Charakter seine Idle-Animation; ein Klick auf das Vorschaubild spielt eine Klick-Aktion aus seinem `behavior.onClick` ab (siehe oben). Mit `--all-characters` sind alle freigeschaltet, ohne diese Option sieht man auch die gesperrte Darstellung.
 - **Zeichensatz:** A–Z, a–z, Ziffern, übliche Satzzeichen sowie ä ö ü Ä Ö Ü ß – — … „ “ ” ‚ ‘ ’ · • × ° €. Andere Zeichen erscheinen als „?“. Pfeile und Emojis gibt es nicht.
-- **Vorschaubild:** Die Karte und die Vorschau zeigen das Idle-Bild des Charakters. Sprites bis ca. 36×40 Pixel passen in die Karte, größere werden abgeschnitten.
+- **Vorschaubild:** Die Karte und die Vorschau zeigen das Idle-Bild des Charakters. Sprites bis ca. 40×40 Pixel passen in die Karte, größere werden abgeschnitten.
 - Texte sind in der JSON direkt änderbar; nach einem Neustart (bzw. `dotnet run`) sind sie im Buch. Anführungszeichen im Text als `\"` schreiben.
 
 ## Reiter im Buch erweitern (Entwickler)
@@ -188,6 +188,9 @@ Jeder Reiter ist eine Klasse, die von `BookTab` erbt (`src/DesktopAdventures/Ui/
 zur Reiter-Liste hinzufügen. Vorbilder: `CharactersTab` (voll ausgebaut) und `BuildingsTab` (Leerzustand).
 Gebäude-Infos werden später genauso aufgebaut wie die der Charaktere (eigener `info`-Block je Gebäude-JSON); bis es Gebäude gibt, zeigt der Reiter „Gebäude“ einen Leerzustand.
 
+**Untermenüs:** Reiter mit mehreren Ansichten zeichnen unter der Überschrift eine `SubTabBar` (`SubTabBar.Draw(ui, x, y, namen, aktiv, i => ...)`). Aktuell: *Charaktere* (Freigeschaltet / Gesperrt), *Gebäude* (Gebaut / Noch offen), *Challenges* (Aktiv / Abgeschlossen).
+
 ## Schrift
-Das Buch nutzt eine Bitmap-Schrift (Jersey 10, SIL Open Font License, Lizenztext in `Content/Fonts/jersey10/OFL.txt`), erzeugt mit `python tools/make_font.py`.
-Anderer Zeichensatz oder andere Schrift: `CHARS`, `FONT`, `SIZE` im Skript anpassen und neu ausführen.
+Das Buch nutzt eine Bitmap-Schrift (Jersey 20, SIL Open Font License, Lizenztext in `Content/Fonts/jersey20/OFL.txt`), erzeugt mit `python tools/make_font.py`.
+Anderer Zeichensatz oder andere Schrift: `CHARS`, `FONT`, `SIZE` im Skript anpassen und neu ausführen. **Wichtig:** Pixel-Schriften sehen nur in ihrer nativen Größe gut aus
+(Jersey 20 → 20, Jersey 15 → 15); in anderen Größen laufen Rundungen wie bei „a“ und „e“ zu. Gerasterte Schriften bitte immer im Spiel prüfen.

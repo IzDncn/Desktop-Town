@@ -5,9 +5,11 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using System.IO;
+using DesktopAdventures.Challenges;
 using DesktopAdventures.Characters;
 using DesktopAdventures.Engine;
 using DesktopAdventures.Platform;
+using DesktopAdventures.Save;
 using DesktopAdventures.Ui;
 using DesktopAdventures.World;
 using Microsoft.Win32;
@@ -26,6 +28,9 @@ public partial class StripWindow : Window
     private readonly ScreenDock _dock = new();
     private readonly CharacterCatalog _catalog;
     private readonly GameState _state;
+    private readonly ChallengeManager _challenges;
+    private readonly ToastOverlay _toasts = new();
+    private double _challengeTimer, _saveTimer;
     private readonly List<string> _startupErrors = new();
     private BitmapFont? _font;
     private BookWindow? _book;
@@ -47,14 +52,31 @@ public partial class StripWindow : Window
     {
         InitializeComponent();
 
+        if (GameOptions.DebugTaskbar) EnableTaskbarLog();
+#if DEBUG
+        AddDevMenu();
+#endif
+
         string content = Path.Combine(AppContext.BaseDirectory, "Content");
         _catalog = CharacterCatalog.Load(content);
         _startupErrors.AddRange(_catalog.Errors);
-        _state = new GameState(_catalog, GameOptions.AllCharacters);
+
+        // Spielstand (mit --all-characters wird nichts gespeichert)
+        var store = new SaveStore();
+        if (GameOptions.ResetSave) store.Delete();
+        var data = store.Load(out string? saveWarning);
+        if (saveWarning != null) _startupErrors.Add(saveWarning);
+        _state = new GameState(_catalog, data, store, GameOptions.AllCharacters);
+
+        var challengeCatalog = ChallengeCatalog.Load(content, _catalog);
+        _startupErrors.AddRange(challengeCatalog.Errors);
+        _challenges = new ChallengeManager(_state, challengeCatalog.Challenges);
+        _challenges.Completed += OnChallengeCompleted;
+        _state.CharacterUnlocked += profile => _world?.AddCharacter(profile);
 
         try
         {
-            _font = BitmapFont.Load(Path.Combine(content, "Fonts", "jersey10"));
+            _font = BitmapFont.Load(Path.Combine(content, "Fonts", "jersey20"));
         }
         catch (Exception ex)
         {
@@ -79,6 +101,7 @@ public partial class StripWindow : Window
         HwndSource.FromHwnd(_hwnd)?.AddHook(WndProc);
 
         SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
+        Application.Current.SessionEnding += (_, _) => _state.SaveNow(); // Windows wird heruntergefahren
 
         Rebuild();
         _lastTick = _clock.Elapsed;
@@ -98,6 +121,7 @@ public partial class StripWindow : Window
     {
         _timer.Stop();
         _book?.Close();
+        _state.SaveNow();
         SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
         base.OnClosed(e);
     }
@@ -152,6 +176,21 @@ public partial class StripWindow : Window
         _lastTick = now;
 
         _world.Update(dt);
+        _state.AddStat("playtime_seconds", dt);
+
+        _challengeTimer += dt;
+        if (_challengeTimer >= 0.5)
+        {
+            _challengeTimer = 0;
+            _challenges.Update();
+        }
+        _saveTimer += dt;
+        if (_saveTimer >= 20)
+        {
+            _saveTimer = 0;
+            _state.SaveIfDirty();
+        }
+
         PlaceWindow(); // folgt der (Autohide-)Taskleiste
         Draw();
     }
@@ -159,6 +198,7 @@ public partial class StripWindow : Window
     private void Draw()
     {
         _world.Render(_buffer);
+        if (_font != null) _toasts.Draw(_buffer, _font, _clock.Elapsed.TotalSeconds);
         _bitmap.WritePixels(new Int32Rect(0, 0, _buffer.Width, _buffer.Height), _buffer.Pixels, _buffer.Width * 4, 0);
     }
 
@@ -194,8 +234,20 @@ public partial class StripWindow : Window
         // DIPs -> Kunst-Pixel: ein Kunst-Pixel ist PixelSize/Dpi DIPs groß.
         var p = e.GetPosition(View);
         double dipPerArt = _layout.PixelSize / _layout.DpiScale;
-        if (_world.Click((int)(p.X / dipPerArt), (int)(p.Y / dipPerArt)) == WorldClick.Book)
-            ToggleBook();
+        switch (_world.Click((int)(p.X / dipPerArt), (int)(p.Y / dipPerArt)))
+        {
+            case WorldClick.Character: _state.AddStat("character_clicks"); break;
+            case WorldClick.Book: ToggleBook(); break;
+        }
+    }
+
+    private void OnChallengeCompleted(Challenge challenge)
+    {
+        string reward = string.Join(" ", challenge.Rewards
+            .Where(r => r.Character != null)
+            .Select(r => $"{r.Character!.Name} ist jetzt dabei!"));
+        _toasts.Show($"Challenge geschafft: {challenge.Name}", reward.Length > 0 ? reward : "Gut gemacht!");
+        _state.SaveNow(); // wichtige Fortschritte sofort sichern
     }
 
     private void OpenBook_Click(object sender, RoutedEventArgs e)
@@ -216,21 +268,57 @@ public partial class StripWindow : Window
 
         var screen = new BookScreen(_font, new BookTab[]
         {
-            new CharactersTab(_catalog.Profiles, _state),
+            new CharactersTab(_catalog.Profiles, _state, _challenges),
             new BuildingsTab(),
+            new ChallengesTab(_challenges, _state),
         });
+        _state.AddStat("book_opened");
 
         var area = _dock.Query(_layout.DpiScale);
         int pixel = _layout.PixelSize;
         var (width, height) = BookWindow.SizePx(pixel);
         int x = (area.Left + area.Right - width) / 2;
         int y = Math.Max(0, area.Bottom - 40 * pixel - height); // knapp über dem Gras
+        if (_state.BookPosition is { } saved)
+        {
+            // zuletzt vom Nutzer gewählte Position, aber immer vollständig auf dem Bildschirm
+            x = Math.Clamp(saved.X, area.Left, Math.Max(area.Left, area.Right - width));
+            y = Math.Clamp(saved.Y, 0, Math.Max(0, area.Bottom - height));
+        }
 
         _book = new BookWindow(screen, pixel, _layout.DpiScale, x, y);
-        _book.Closed += (_, _) => _book = null;
+        _book.Closed += (_, _) =>
+        {
+            if (_book != null && _book.Moved) _state.BookPosition = _book.LastPosition;
+            _book = null;
+        };
         _book.Show();
         _book.Activate();
     }
+
+    private string EnableTaskbarLog()
+    {
+        string path = Path.Combine(AppContext.BaseDirectory, "taskbar-debug.log");
+        if (_dock.LogPath == null) _dock.EnableLog(path);
+        return _dock.LogPath ?? path;
+    }
+
+#if DEBUG
+    /// <summary>Entwickler-Menüpunkte, nur in Debug-Builds (z. B. beim Starten aus der IDE).</summary>
+    private void AddDevMenu()
+    {
+        var item = new MenuItem { Header = "[Dev] Taskleisten-Log starten" };
+        item.Click += (_, _) =>
+        {
+            string path = EnableTaskbarLog();
+            MessageBox.Show("Die Diagnose läuft jetzt. Bewege die Maus zum unteren Rand, lass die Taskleiste ein- und ausfahren " +
+                            "und schick mir danach diese Datei:\n\n" + path,
+                "Desktop Adventures", MessageBoxButton.OK, MessageBoxImage.Information);
+            if (File.Exists(path)) Process.Start("explorer.exe", $"/select,\"{path}\"");
+        };
+        ContextMenu?.Items.Insert(1, item);
+    }
+#endif
 
     private void Exit_Click(object sender, RoutedEventArgs e) => Application.Current.Shutdown();
 }

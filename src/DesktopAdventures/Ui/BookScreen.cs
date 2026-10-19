@@ -29,7 +29,8 @@ public sealed class BookScreen
 
     public void MouseLeave() => _ui.SetMouse(-1, -1);
 
-    public void Click(int x, int y) => _ui.Click(x, y);
+    /// <summary>true, wenn eine Schaltfläche getroffen wurde (sonst darf das Fenster gezogen werden).</summary>
+    public bool Click(int x, int y) => _ui.Click(x, y);
 
     public void NextTab(int direction) => SelectTab((_active + direction + _tabs.Count) % _tabs.Count);
 

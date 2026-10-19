@@ -7,8 +7,10 @@ src/DesktopAdventures/
   Engine/     PixelBuffer (Software-Zeichenfläche), Sprite, Palette, Noise, ColorUtil
   Characters/ Katalog (lädt Templates + Charakter-JSON, färbt Sprites ein), Definitionen, Marker-Farben
   World/      GameWorld (Welt-Zustand), Landscape (Gelände), CharacterActor (Figuren-Verhalten), Wind
-  Ui/         Buch: BookScreen, Reiter (BookTab), UiContext (Immediate-Mode), BitmapFont, PixelIcon, BookTheme
-  GameState   Spielstand (freigeschaltete Charaktere), von Welt und Buch genutzt
+  Ui/         Buch: BookScreen, Reiter (BookTab), SubTabBar (Untermenüs), PageParts, UiContext (Immediate-Mode), BitmapFont, PixelIcon, BookTheme
+  Save/       SaveData + SaveStore (JSON in %APPDATA%, atomar, fehlertolerant)
+  Challenges/ Definitionen, Catalog (lädt/prüft Content/Challenges), ChallengeManager (aktiv/erledigt, Belohnungen)
+  GameState   Spielstand: Freischaltungen, Challenges, Statistiken, Buch-Position; von Welt, Buch und Challenges genutzt
   Content/    Fonts/, Templates/ und Characters/ (JSON + PNG, neben der .exe, ohne Code änderbar)
   GameConfig  zentrale Konstanten
 ```
@@ -22,9 +24,14 @@ physische Pixel, so bleibt das Raster bei jeder DPI-Skalierung exakt.
 - Höhe des Streifens: `GameConfig.StripHeightArt`.
 
 ## Platzierung
-`ScreenDock` liefert linke/rechte Kante und die Oberkante der Taskleiste des Hauptbildschirms (Arbeitsbereich);
-bei Autohide wird das aktuelle Taskleisten-Rechteck ausgewertet, `StripWindow` folgt weich.
+`ScreenDock` liefert linke/rechte Kante und die Oberkante der Taskleiste des Hauptbildschirms. Bei einer fest eingeblendeten Taskleiste ist das die
+Arbeitsbereichs-Unterkante. Bei automatisch ausgeblendeter Taskleiste wird deren sichtbare Höhe aus drei unabhängigen Signalen bestimmt (das größte
+gewinnt): Fensterrechteck, Abtasten vom Bildschirmrand nach oben und Vorhersage per Mausposition. Ist sie ganz ausgeblendet, bleibt ein kleiner Abstand
+(`GameConfig.AutohideGapDips`), damit sie am Rand wieder ausfahren kann. Fährt sie aus, geht `StripWindow` sofort mit nach oben, beim Einfahren gleitet es weich zurück.
 Positioniert wird per `SetWindowPos` in physischen Pixeln (keine DIP-Rundungsfehler).
+
+**Diagnose:** In Debug-Builds gibt es im Kontextmenü *[Dev] Taskleisten-Log starten* (schreibt `taskbar-debug.log` neben die .exe und öffnet den Ordner);
+alternativ Start mit `--debug-taskbar`. Notlösung ohne Mitwandern: `GameConfig.AutohideFollowsTaskbar = false` (Streifen bleibt dauerhaft über der vollen Taskleistenhöhe).
 
 ## Landschaft
 `Landscape` ist deterministisch (Seed). Statisches (Gelände, Steine, Büsche, Pilze) wird einmal in einen Puffer
@@ -44,3 +51,8 @@ Klicks: transparente Pixel des Fensters gehen an Windows durch, daher erreichen 
 (Größe `BookTheme.Width × Height` Kunst-Pixel), derselbe Renderer und dasselbe ganzzahlige Pixelraster wie der Streifen. Das UI ist Immediate-Mode:
 jeder Frame wird komplett neu gezeichnet, klickbare Flächen werden dabei über `UiContext.Button` angemeldet und beim Klick ausgelöst. Text kommt aus
 `BitmapFont` (Atlas aus `tools/make_font.py`). Geöffnet wird das Buch über `BookProp` im Gras (Klick → `WorldClick.Book`) oder das Kontextmenü.
+
+## Spielstand und Challenges
+`GameState` hält alles Veränderliche und speichert über `SaveStore`. Ereignisse im Spiel erhöhen Statistiken (`AddStat`); `ChallengeManager.Update()` (alle 0,5 s aus dem
+Game-Loop) schließt erreichte Challenges ab, vergibt Belohnungen (`GameState.UnlockCharacter` → Event → `GameWorld.AddCharacter`) und meldet den Abschluss an
+`StripWindow`, das eine `ToastOverlay`-Meldung einblendet. Das Buch liest den Zustand jeden Frame live. Format und Erweiterung: `docs/CHALLENGES.md`.

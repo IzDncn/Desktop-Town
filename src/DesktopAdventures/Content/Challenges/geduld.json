@@ -1,0 +1,7 @@
+{
+  "name": "Geduld",
+  "description": "Lass das Spiel 5 Minuten laufen und sieh dem Treiben zu.",
+  "order": 30,
+  "goal": { "stat": "playtime_minutes", "target": 5, "unit": "Minuten" },
+  "rewards": [ { "type": "unlockCharacter", "id": "mochi" } ]
+}

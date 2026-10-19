@@ -1,0 +1,7 @@
+{
+  "name": "Hallo!",
+  "description": "Klicke einmal auf einen Charakter in der Landschaft.",
+  "order": 10,
+  "goal": { "stat": "character_clicks", "target": 1 },
+  "rewards": [ { "type": "unlockCharacter", "id": "pip" } ]
+}

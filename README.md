@@ -19,8 +19,12 @@ oder `DesktopAdventures.sln` in Rider / Visual Studio öffnen. Das Buch öffnet 
 - [x] 1. Fundament: Streifen auf der Taskleiste, Pixel-Engine, prozedurale Landschaft
 - [x] 2. Welt & Charaktere: Sprite-System, datengetriebene Charaktere, Figuren laufen durch die Landschaft
 - [x] 3. Buch-Popup: Pixel-UI im Stil des Referenzbilds, Reiter *Charaktere* (komplett) und *Gebäude* (Leerzustand)
-- [ ] 4. Spielzustand: Speichern, Ressourcen, Challenges, Freischaltungen
+- [x] 4. Spielzustand: Speichern, Statistiken, Challenges, Freischaltungen
 - [ ] 5. Bauen & Inhalte: Häuser, weitere Charaktere, Tageszeit, Tray-Icon, Release-Workflow
+
+## Spielstand und Challenges
+Fortschritt wird automatisch gespeichert (`%APPDATA%\DesktopAdventures\save.json`). Challenges schalten Charaktere frei: `docs/CHALLENGES.md`.
+Neu beginnen: `dotnet run --project src/DesktopAdventures -- --reset-save`.
 
 ## Charaktere
 Eigene Charaktere entstehen per JSON (Farben, Hüte, Specials), ohne Code: `docs/CHARAKTERE.md`.

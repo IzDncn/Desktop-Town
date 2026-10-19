@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.4.0 – Etappe 4: Spielstand, Challenges, Freischaltungen
+- Spielstand (`%APPDATA%\DesktopAdventures\save.json`): Freischaltungen, Challenges, Statistiken, Buch-Position; Autosave, Speichern beim Beenden/Herunterfahren,
+  atomares Schreiben, beschädigte Dateien werden gesichert
+- Challenge-System per JSON (`Content/Challenges`): Ziel auf eine Statistik, Voraussetzungen (`requires`), Belohnungen (`unlockCharacter`), Prüfung beim Start
+- Statistiken: Spielzeit, Klicks auf Charaktere, Buch geöffnet (erweiterbar)
+- Reiter *Challenges* funktional (Aktiv/Abgeschlossen, Liste mit Fortschrittsbalken, Details mit Belohnung); gesperrte Charaktere zeigen ihre Freischalt-Challenge
+  mit Fortschritt
+- Meldung oben im Streifen beim Abschluss; neue Charaktere erscheinen sofort in der Landschaft und jubeln
+- Mitgeliefert: 5 Challenges (Hallo!, Streichelzoo, Geduld, Buchwurm, Nachtschwärmer); außer Thunk sind alle Charaktere jetzt gesperrt
+- Start-Optionen `--reset-save`, `--all-characters` (speichert nichts)
+- Doku: `docs/CHALLENGES.md`
+
+## 0.3.1 – Feinschliff Buch & Taskleiste
+- Taskleiste: Erkennung der ausgeblendeten Taskleiste über drei Signale (Fensterrechteck, Abtasten, Maus-Vorhersage) statt nur über das Rechteck;
+  Autohide wird zusätzlich aus dem Arbeitsbereich erschlossen. Diagnose-Log neben der .exe (`taskbar-debug.log`), in Debug-Builds per Kontextmenü
+  *[Dev] Taskleisten-Log starten*; Notlösung `GameConfig.AutohideFollowsTaskbar`
+- Buch ist per Maus verschiebbar (an jeder freien Stelle ziehen); die Position wird für die laufende Sitzung gemerkt
+- Neue Schrift Jersey 20 in nativer Größe: offene Rundungen bei a/e, eindeutige Ziffern, richtiges ß; Buch dadurch etwas größer (504×298)
+- Untermenüs im Buch (`SubTabBar`): Charaktere → Freigeschaltet/Gesperrt, Gebäude → Gebaut/Noch offen, neuer Reiter Challenges → Aktiv/Abgeschlossen (noch leer)
+
 ## 0.3.0 – Etappe 3: Buch-Popup
 - Buch im Gras (funkelt gelegentlich); Klick oder Rechtsklick → *Buch öffnen* zeigt das Popup im Pixel-Stil mit Lesezeichen-Reitern
   (Esc schließt, Pfeiltasten wechseln den Reiter)

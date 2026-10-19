@@ -3,14 +3,16 @@ namespace DesktopAdventures.Ui;
 /// <summary>Maße (Kunst-Pixel) und Farben des Buchs.</summary>
 public static class BookTheme
 {
-    // Gesamtgröße des Popups
-    public const int Width = 440;
-    public const int Height = 282;
-
-    // Buchkörper und Seiten
+    // Buchkörper und Seiten (die Gesamtgröße ergibt sich daraus)
     public const int BodyTop = 20;
-    public const int PageY = 32, PageW = 200, PageH = 240;
-    public const int LeftX = 14, SpineX = 214, SpineW = 12, RightX = 226;
+    public const int PageY = 32, PageW = 232, PageH = 256;
+    public const int LeftX = 14, SpineW = 12;
+    public const int SpineX = LeftX + PageW;
+    public const int RightX = SpineX + SpineW;
+
+    // Gesamtgröße des Popups
+    public const int Width = RightX + PageW + 14;
+    public const int Height = PageY + PageH + 10;
 
     // Lesezeichen (Tabs)
     public const int TabW = 30, TabH = 28, TabStep = 34, TabFirstX = 34;

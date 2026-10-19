@@ -5,28 +5,32 @@ Rastert eine Pixel-Schrift (TTF) in einen Bitmap-Font-Atlas für das Buch-UI.
     pip install pillow
     python tools/make_font.py
 
-Ergebnis: src/DesktopAdventures/Content/Fonts/jersey10/font.png + font.json
-Schrift: Jersey 10 (SIL Open Font License, siehe tools/fonts/OFL.txt). Andere Schrift/Größe:
-FONT und SIZE unten ändern. Zeichensatz in CHARS.
+Ergebnis: src/DesktopAdventures/Content/Fonts/jersey20/font.png + font.json
+Schrift: Jersey 20 (SIL Open Font License, siehe tools/fonts/OFL.txt). Andere Schrift/Größe/Stärke:
+FONT, SIZE und WEIGHT unten ändern. Pixel-Schriften sehen NUR in ihrer nativen Größe gut aus
+(Jersey 20 -> 20, Jersey 15 -> 15, ...); sonst laufen Rundungen zu (e/a "voll"). Zeichensatz in CHARS.
 """
 import json
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parent
-FONT = ROOT / "fonts" / "Jersey10-Regular.ttf"
-SIZE = 16
-OUT = ROOT.parent / "src" / "DesktopAdventures" / "Content" / "Fonts" / "jersey10"
+FONT = ROOT / "fonts" / "Jersey20-Regular.ttf"
+SIZE = 20
+WEIGHT = None  # nur für variable Schriften: Strichstärke (z. B. 500)
+OUT = ROOT.parent / "src" / "DesktopAdventures" / "Content" / "Fonts" / "jersey20"
 CHARS = ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
          "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~ÄÖÜäöüß–—…„“”‚‘’·•×°€←→")
 
 
 def main():
     font = ImageFont.truetype(str(FONT), SIZE)
+    if WEIGHT is not None:
+        font.set_variation_by_axes([WEIGHT])
     ascent, descent = font.getmetrics()
     line_height = ascent + descent
     def render(ch, adv):
-        cell = Image.new("L", (adv, line_height), 0)
+        cell = Image.new("L", (adv + 8, line_height), 0)
         d = ImageDraw.Draw(cell)
         d.fontmode = "1"
         d.text((0, 0), ch, font=font, fill=255)
@@ -38,6 +42,10 @@ def main():
     for ch in CHARS:
         adv = max(1, round(font.getlength(ch)))
         cell = render(ch, adv)
+        box = cell.getbbox()
+        if box is not None:
+            adv = max(adv, box[2])               # Zeichen nie abschneiden
+        cell = cell.crop((0, 0, adv, line_height))
         # Glyph fehlt in der Schrift (leer oder das "Kästchen" für unbekannte Zeichen) -> weglassen
         if cell.getbbox() is None or (cell.size == notdef.size and cell.tobytes() == notdef.tobytes()):
             continue

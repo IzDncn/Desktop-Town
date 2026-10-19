@@ -1,0 +1,8 @@
+{
+  "name": "Streichelzoo",
+  "description": "Klicke 15 Mal auf Charaktere. Sie freuen sich über jede Aufmerksamkeit.",
+  "order": 20,
+  "requires": ["hallo"],
+  "goal": { "stat": "character_clicks", "target": 15 },
+  "rewards": [ { "type": "unlockCharacter", "id": "merle" } ]
+}
